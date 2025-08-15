@@ -51,3 +51,7 @@ SELECT extname FROM pg_extension;
 ```
 
 Для переноса больших баз (от 100 ГБ) рассмотрите вариант с **логической репликацией** или **yc-transfer**.
+
+
+### Link
+https://intraservice.ru/support/
