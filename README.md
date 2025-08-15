@@ -21,7 +21,7 @@
         ```
      4. Восстановите данные:
         ```sh
-        pg_restore -U username -h <yandex-cluster-host> -p 6432 -d new_db -v db_backup.dump
+        pg_restore -U username -h <yandex-cluster-host> -p 6432 -d new_db -v db_backup.dump --no-owner
         ```
         - Порт **6432** — стандартный для Managed PostgreSQL.
 
