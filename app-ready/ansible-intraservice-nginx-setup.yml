@@ -99,11 +99,6 @@
         name: aspnetcore-runtime-6.0
         state: present
         
-    - name: Install ASP.NET Core Runtime 6.0
-      apt:
-        name: aspnetcore-runtime-6.0
-        state: present
-
     - name: Create application directories
       file:
         path: "{{ item }}"
