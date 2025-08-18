@@ -11,7 +11,7 @@
     db_port: "6432" #5432 - op-prem postgres, 6432 yc mgmt postgres
     db_name: "{{ db_name_var }}"
     db_user: "{{ db_user_var }}"
-    db_pass: "{{ db_pass_var }}"
+    db_pass: "{{ db_pass_var | quote }}"
     intraservice_url: "{{ intraservice_url_var | default('') }}"
     agent_url: "{{ agent_url_var | default('') }}"
 
