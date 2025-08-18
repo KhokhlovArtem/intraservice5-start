@@ -70,6 +70,35 @@
         enabled: yes
         state: started
 
+    - name: Install prerequisites
+      apt:
+        name: "{{ item }}"
+        state: present
+      loop:
+        - wget
+        - apt-transport-https
+        - software-properties-common
+
+    - name: Add Microsoft package signing key
+      apt_key:
+        url: https://packages.microsoft.com/keys/microsoft.asc
+        state: present
+
+    - name: Add .NET 6 repository
+      apt_repository:
+        repo: "deb [arch=amd64] https://packages.microsoft.com/ubuntu/$(lsb_release -rs)/produced $(lsb_release -cs) main"
+        state: present
+        filename: microsoft-prod.list
+
+    - name: Update apt package index
+      apt:
+        update_cache: yes
+
+    - name: Install ASP.NET Core Runtime 6.0
+      apt:
+        name: aspnetcore-runtime-6.0
+        state: present
+        
     - name: Install ASP.NET Core Runtime 6.0
       apt:
         name: aspnetcore-runtime-6.0
