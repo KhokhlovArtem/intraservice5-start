@@ -1,3 +1,24 @@
+# Deploy
+ 
+
+## доверие для сертификата  
+mkdir -p ~/.postgresql && \
+wget "https://storage.yandexcloud.net/cloud-certs/CA.pem" \
+     --output-document ~/.postgresql/root.crt && \
+chmod 0655 ~/.postgresql/root.crt
+
+Для подключения из сети интернет:
+
+1. Публикуем подключение к СУБД для интернета
+2. Делаем whitelist для подключения
+3. Доверяем сертификату
+4. Подключаемся по кластерному имени c-< postgres cluster id >.rw.mdb.yandexcloud.net
+
+### link 
+- [man](https://yandex.cloud/ru/docs/managed-postgresql/operations/connect?from=int-console-help-center-or-nav&utm_referrer=https%3A%2F%2Fconsole.yandex.cloud%2Ffolders%2Fb1g49r8ds1ljoj3tbkha%2Fmanaged-postgresql%2Fcluster%2Fc9qhfnip20eii0oa7cfi)  
+
+
+
 # Migration
 
 ### 1. **Подготовка исходной базы данных на Windows Server**
