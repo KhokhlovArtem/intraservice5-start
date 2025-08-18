@@ -1,0 +1,60 @@
+---
+- name: Install .NET 6 on Ubuntu 24.04
+  hosts: all
+  become: yes
+
+  tasks:
+    - name: Install prerequisites
+      apt:
+        name: "{{ item }}"
+        state: present
+      loop:
+        - wget
+        - tar
+        - gzip
+
+    - name: Download .NET 6 binaries
+      ansible.builtin.get_url:
+        url: https://builds.dotnet.microsoft.com/dotnet/Sdk/6.0.428/dotnet-sdk-6.0.428-linux-x64.tar.gz
+        dest: /tmp/dotnet-sdk.tar.gz
+        checksum: sha512:04395f991ab50e4755ce1ae53e23592a7420b71b82160883bae3194dd1dfd5dcaed78743e4e0b4dd51ea43c49ec84b5643630707b3854f1471265dc98490d2f9
+
+    - name: Create dotnet directory
+      file:
+        path: /usr/share/dotnet
+        state: directory
+        mode: '0755'
+
+    - name: Extract .NET SDK
+      ansible.builtin.unarchive:
+        src: /tmp/dotnet-sdk.tar.gz
+        dest: /usr/share/dotnet
+        remote_src: yes
+        extra_opts: "--strip-components=1"
+
+    - name: Create symlink to binary
+      file:
+        src: /usr/share/dotnet/dotnet
+        dest: /usr/bin/dotnet
+        state: link
+        force: yes
+
+    - name: Add dotnet to PATH
+      blockinfile:
+        path: /etc/profile.d/dotnet.sh
+        create: yes
+        block: |
+          export DOTNET_ROOT=/usr/share/dotnet
+          export PATH=$PATH:/usr/share/dotnet
+
+    - name: Make dotnet available in current session
+      ansible.builtin.shell: |
+        . /etc/profile.d/dotnet.sh
+      register: dotnet_path
+      changed_when: false
+
+    - name: Verify installation
+      ansible.builtin.command: dotnet --list-runtimes
+      register: dotnet_check
+      changed_when: false
+
