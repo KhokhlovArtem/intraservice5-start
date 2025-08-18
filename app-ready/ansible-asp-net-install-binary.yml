@@ -58,3 +58,7 @@
       register: dotnet_check
       changed_when: false
 
+    - name: Show installed runtimes
+      ansible.builtin.debug:
+        var: dotnet_check.stdout_lines
+
