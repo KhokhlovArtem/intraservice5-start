@@ -7,7 +7,7 @@
 5. Запустите playbook командой:
    
    ```bash
-   ansible-playbook -i your_inventory_file intraservice_nginx_setup.yml --extra-vars "@.env"
+   ansible-playbook -i your_inventory_file ansible-intraservice-nginx-setup.yml --extra-vars "@.env"
    ```
 
 ### Примечания:
