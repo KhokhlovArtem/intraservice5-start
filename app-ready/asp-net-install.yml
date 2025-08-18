@@ -1,0 +1,35 @@
+---
+- name: Install .NET 6 Runtime
+  hosts: all
+  become: yes
+
+  tasks:
+    - name: Install prerequisites
+      apt:
+        name: "{{ item }}"
+        state: present
+        update_cache: yes
+      loop:
+        - wget
+        - apt-transport-https
+
+    - name: Download Microsoft package key
+      ansible.builtin.get_url:
+        url: https://packages.microsoft.com/keys/microsoft.asc
+        dest: /etc/apt/trusted.gpg.d/microsoft.gpg
+        mode: '0644'
+
+    - name: Add correct .NET 6 repository
+      ansible.builtin.apt_repository:
+        repo: "deb [arch=amd64] https://packages.microsoft.com/ubuntu/{{ ansible_distribution_release }}/prod {{ ansible_distribution_release }} main"
+        state: present
+        filename: microsoft-prod.list
+
+    - name: Update apt cache
+      apt:
+        update_cache: yes
+
+    - name: Install ASP.NET Core Runtime 6.0
+      apt:
+        name: aspnetcore-runtime-6.0
+        state: present
