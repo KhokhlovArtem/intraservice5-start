@@ -49,7 +49,7 @@
 
     - name: Copy and extract Intraservice (assuming archives are already on server)
       unarchive:
-        src: "/home/admin/{{ item.src }}"
+        src: "/tmp/intraservice-install/{{ item.src }}"
         dest: "{{ item.dest }}"
         remote_src: yes
       with_items:
