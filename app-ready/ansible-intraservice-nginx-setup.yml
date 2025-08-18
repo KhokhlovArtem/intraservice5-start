@@ -1,0 +1,82 @@
+---
+- name: Prepare Nginx server for Intraservice
+  hosts: all
+  become: yes
+
+  vars:
+    intraservice_dir: /var/www/intraservice
+    agent_dir: /var/www/intraservice.agent
+    db_host: "{{ db_host_var }}"
+    db_port: "6432" #5432 - op-prem postgres, 6432 yc mgmt postgres
+    db_name: "{{ db_name_var }}"
+    db_user: "{{ db_user_var }}"
+    db_pass: "{{ db_pass_var }}"
+
+  tasks:
+    - name: Update apt package index
+      apt:
+        update_cache: yes
+
+    - name: Install Nginx
+      apt:
+        name: nginx
+        state: present
+
+    - name: Enable and start Nginx
+      systemd:
+        name: nginx
+        enabled: yes
+        state: started
+
+    - name: Install ASP.NET Core Runtime 6.0
+      apt:
+        name: aspnetcore-runtime-6.0
+        state: present
+
+    - name: Create application directories
+      file:
+        path: "{{ item }}"
+        state: directory
+        mode: '0755'
+      with_items:
+        - "{{ intraservice_dir }}"
+        - "{{ agent_dir }}"
+
+    - name: Install unzip
+      apt:
+        name: unzip
+        state: present
+
+    - name: Copy and extract Intraservice (assuming archives are already on server)
+      unarchive:
+        src: "/home/admin/{{ item.src }}"
+        dest: "{{ item.dest }}"
+        remote_src: yes
+      with_items:
+        - { src: 'intraservice.zip', dest: "{{ intraservice_dir }}" }
+        - { src: 'intraservice.agent.zip', dest: "{{ agent_dir }}" }
+
+    - name: Set permissions for Intraservice directories
+      file:
+        path: "{{ item }}"
+        mode: '0777'
+        recurse: yes
+      with_items:
+        - "{{ intraservice_dir }}/wwwroot/img"
+        - "{{ intraservice_dir }}/wwwroot/tempfiles"
+        - "{{ intraservice_dir }}/temp"
+
+    - name: Configure appsettings.json for Intraservice
+      template:
+        src: appsettings.json.j2
+        dest: "{{ intraservice_dir }}/appsettings.json"
+
+    - name: Configure appsettings.json for Agent
+      template:
+        src: appsettings.json.j2
+        dest: "{{ agent_dir }}/appsettings.json"
+
+    - name: Install PostgreSQL client (for connection testing)
+      apt:
+        name: postgresql-client
+        state: present
