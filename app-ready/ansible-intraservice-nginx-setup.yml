@@ -6,13 +6,55 @@
   vars:
     intraservice_dir: /var/www/intraservice
     agent_dir: /var/www/intraservice.agent
+    download_dir: /tmp/intraservice-setup
     db_host: "{{ db_host_var }}"
     db_port: "6432" #5432 - op-prem postgres, 6432 yc mgmt postgres
     db_name: "{{ db_name_var }}"
     db_user: "{{ db_user_var }}"
     db_pass: "{{ db_pass_var }}"
+    intraservice_url: "{{ intraservice_url_var | default('') }}"
+    agent_url: "{{ agent_url_var | default('') }}"
 
   tasks:
+    - name: Create download directory
+      file:
+        path: "{{ download_dir }}"
+        state: directory
+        mode: '0755'
+
+    - name: Check if intraservice.zip exists locally
+      stat:
+        path: "{{ download_dir }}/intraservice.zip"
+      register: intraservice_local
+
+    - name: Download Intraservice (if URL provided and not exists locally)
+      get_url:
+        url: "{{ intraservice_url }}"
+        dest: "{{ download_dir }}/intraservice.zip"
+        mode: '0644'
+      when: intraservice_url != '' and not intraservice_local.stat.exists
+
+    - name: Check if intraservice.agent.zip exists locally
+      stat:
+        path: "{{ download_dir }}/intraservice.agent.zip"
+      register: agent_local
+
+    - name: Download Agent (if URL provided and not exists locally)
+      get_url:
+        url: "{{ agent_url }}"
+        dest: "{{ download_dir }}/intraservice.agent.zip"
+        mode: '0644'
+      when: agent_url != '' and not agent_local.stat.exists
+
+    - name: Verify at least one package is available
+      fail:
+        msg: "Neither intraservice.zip nor intraservice.agent.zip found locally and no download URLs provided"
+      when: >
+        not intraservice_local.stat.exists and
+        not agent_local.stat.exists and
+        intraservice_url == '' and
+        agent_url == ''
+
     - name: Update apt package index
       apt:
         update_cache: yes
@@ -41,22 +83,33 @@
       with_items:
         - "{{ intraservice_dir }}"
         - "{{ agent_dir }}"
+      when: >
+        (intraservice_local.stat.exists or intraservice_url != '') or
+        (agent_local.stat.exists or agent_url != '')
 
     - name: Install unzip
       apt:
         name: unzip
         state: present
+      when: >
+        (intraservice_local.stat.exists or intraservice_url != '') or
+        (agent_local.stat.exists or agent_url != '')
 
-    - name: Copy and extract Intraservice (assuming archives are already on server)
+    - name: Copy and extract Intraservice (if available)
       unarchive:
-        src: "/tmp/intraservice-install/{{ item.src }}"
-        dest: "{{ item.dest }}"
+        src: "{{ download_dir }}/intraservice.zip"
+        dest: "{{ intraservice_dir }}"
         remote_src: yes
-      with_items:
-        - { src: 'intraservice.zip', dest: "{{ intraservice_dir }}" }
-        - { src: 'intraservice.agent.zip', dest: "{{ agent_dir }}" }
+      when: intraservice_local.stat.exists or intraservice_url != ''
 
-    - name: Set permissions for Intraservice directories
+    - name: Copy and extract Agent (if available)
+      unarchive:
+        src: "{{ download_dir }}/intraservice.agent.zip"
+        dest: "{{ agent_dir }}"
+        remote_src: yes
+      when: agent_local.stat.exists or agent_url != ''
+
+    - name: Set permissions for Intraservice directories (if installed)
       file:
         path: "{{ item }}"
         mode: '0777'
@@ -65,18 +118,22 @@
         - "{{ intraservice_dir }}/wwwroot/img"
         - "{{ intraservice_dir }}/wwwroot/tempfiles"
         - "{{ intraservice_dir }}/temp"
+      when: intraservice_local.stat.exists or intraservice_url != ''
 
-    - name: Configure appsettings.json for Intraservice
+    - name: Configure appsettings.json for Intraservice (if installed)
       template:
         src: appsettings.json.j2
         dest: "{{ intraservice_dir }}/appsettings.json"
+      when: intraservice_local.stat.exists or intraservice_url != ''
 
-    - name: Configure appsettings.json for Agent
+    - name: Configure appsettings.json for Agent (if installed)
       template:
         src: appsettings.json.j2
         dest: "{{ agent_dir }}/appsettings.json"
+      when: agent_local.stat.exists or agent_url != ''
 
     - name: Install PostgreSQL client (for connection testing)
       apt:
         name: postgresql-client
         state: present
+
