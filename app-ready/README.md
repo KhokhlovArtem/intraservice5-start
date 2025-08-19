@@ -2,7 +2,7 @@
 
 1. Сохраните проект на сервер управления
 2. Скопируйте  `.env.yml.example` в файл `.env.yml` и заполните своими значениями
-3. Укажите свои значения в файле `your_inventory_file.yml` или используйте свой inventory файл
+3. Скопируйте  `your_inventory_file.yml.example` в файл `your_inventory_file.yml` и заполните своими значениями или используйте свой inventory файл
 4. (Опция) Скопируйте архивы `intraservice.zip` и `intraservice.agent.zip` в `/tmp/intraservice-install/` на целевом сервере
 5. Pre-install asp.net ansible-asp-net-install-binary.yml
    ```bash
