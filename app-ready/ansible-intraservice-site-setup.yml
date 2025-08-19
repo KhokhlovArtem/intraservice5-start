@@ -1,5 +1,5 @@
 ---
-- name: Prepare Nginx server for Intraservice
+- name: Download and setup instaservice files
   hosts: all
   become: yes
 
@@ -55,21 +55,6 @@
         intraservice_url == '' and
         agent_url == ''
 
-    - name: Update apt package index
-      apt:
-        update_cache: yes
-
-    - name: Install Nginx
-      apt:
-        name: nginx
-        state: present
-
-    - name: Enable and start Nginx
-      systemd:
-        name: nginx
-        enabled: yes
-        state: started
-    
     - name: Create application directories
       file:
         path: "{{ item }}"
@@ -126,9 +111,3 @@
         src: appsettings.json.j2
         dest: "{{ agent_dir }}/appsettings.json"
       when: agent_local.stat.exists or agent_url != ''
-
-    - name: Install PostgreSQL client (for connection testing)
-      apt:
-        name: postgresql-client
-        state: present
-
