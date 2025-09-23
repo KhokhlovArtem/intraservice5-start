@@ -3,9 +3,12 @@
 1. Предполагается наличие развернутого PostgresSQL
 2. Скопируйте  `.env.yml.example` в файл `.env.yml` и заполните своими значениями
 ```bash
-cp your_inventory_file.yml.example your_inventory_file.yml
+cp .env.yml.example .env.yml
 ```
 4. Скопируйте  `your_inventory_file.yml.example` в файл `your_inventory_file.yml` и заполните своими значениями или используйте свой inventory файл
+```bash
+cp your_inventory_file.yml.example your_inventory_file.yml
+```
 5. (Опция) Скопируйте архивы `intraservice.zip` и `intraservice.agent.zip` в `/tmp/intraservice-install/` на целевом сервере
 6. Pre-install asp.net
 
