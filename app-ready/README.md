@@ -2,9 +2,12 @@
 
 1. Предполагается наличие развернутого PostgresSQL
 2. Скопируйте  `.env.yml.example` в файл `.env.yml` и заполните своими значениями
-3. Скопируйте  `your_inventory_file.yml.example` в файл `your_inventory_file.yml` и заполните своими значениями или используйте свой inventory файл
-4. (Опция) Скопируйте архивы `intraservice.zip` и `intraservice.agent.zip` в `/tmp/intraservice-install/` на целевом сервере
-5. Pre-install asp.net
+```bash
+cp your_inventory_file.yml.example your_inventory_file.yml
+```
+4. Скопируйте  `your_inventory_file.yml.example` в файл `your_inventory_file.yml` и заполните своими значениями или используйте свой inventory файл
+5. (Опция) Скопируйте архивы `intraservice.zip` и `intraservice.agent.zip` в `/tmp/intraservice-install/` на целевом сервере
+6. Pre-install asp.net
 
 ```bash
    ansible-playbook -i your_inventory_file.yml ansible-asp-net-6-install-binary.yml
