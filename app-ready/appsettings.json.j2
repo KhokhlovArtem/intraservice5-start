@@ -1,7 +1,140 @@
 {
-  "ConnectionStrings": {
-    "DefaultConnection": "Host={{ db_host }};Port={{ db_port }};Database={{ db_name }};Username={{ db_user }};Password={{ db_pass }}"
+  "Kestrel": {
+    "Limits": {
+      "MaxRequestBodySize": 120000000      
+    }
   },
-  // Other settings remain unchanged
-  // ...
+  "Logging": {
+    "LogLevel": {
+      "Default": "Information",
+      "Microsoft.AspNetCore": "Warning"
+    }
+  },
+  "AllowedHosts": "*",
+  "ConnectionStrings": {
+    "IntraServiceConnectionString": "Host={{ db_host }};Port={{ db_port }};Database={{ db_name }};Username={{ db_user }};Password={{ db_pass }}"
+
+  },
+  //"ForceHttps": "true",
+
+  "appSettings": {
+    "tariffplan": "Enterprise",
+    "defaultLanguage": "ru",
+    "publicRSAKey": "PFJTQUtleVZhbHVlPjxNb2R1bHVzPnQ5eGIvNVhXVFozZDM3Wk16VmlsQ3dZWXpXVk1wZmJMVG1yYmtIUXRpUmdUMGNyU3YwNzE5djhSQXRLbDNYcldFNVpEcTd0eGJ5V2VjVHFCRnZqN044UFpkUU1Xb2RTajVMT2dMc1FaczViaVUrTTZrajRuMUxXNmVBd3dtZER3UWNna0Jid1Eyd3FnZGR3V0N6d3owY05UdHRwY0hBWTU1T2M1MzBDakJGMD08L01vZHVsdXM+PEV4cG9uZW50PkFRQUI8L0V4cG9uZW50PjwvUlNBS2V5VmFsdWU+",
+    "privateRSAKey": "PFJTQUtleVZhbHVlPjxNb2R1bHVzPnQ5eGIvNVhXVFozZDM3Wk16VmlsQ3dZWXpXVk1wZmJMVG1yYmtIUXRpUmdUMGNyU3YwNzE5djhSQXRLbDNYcldFNVpEcTd0eGJ5V2VjVHFCRnZqN044UFpkUU1Xb2RTajVMT2dMc1FaczViaVUrTTZrajRuMUxXNmVBd3dtZER3UWNna0Jid1Eyd3FnZGR3V0N6d3owY05UdHRwY0hBWTU1T2M1MzBDakJGMD08L01vZHVsdXM+PEV4cG9uZW50PkFRQUI8L0V4cG9uZW50PjxQPjhrRzdKSndKMnE2bWJvU3ZTLzZjZlRlQlBDVVd1L1dBMUxTUjl1Y28xejg0VHFVLzd0b3JSWE1KY3RvSG5qQmhJR0pHYzJDM0tpTXFOM2RodzUrWHFRPT08L1A+PFE+d2txTXUrTFRVd3FmNDM5VUdrRElsV05HMWlFbmZ6Zmk2MDBYMVRaZFppbWQxU29uZWRWV2NFdmtiS1JiL2Mzd2dCaUFOTlpYYjlYTnZKcVZ3cDBubFE9PTwvUT48RFA+bXJTWFNsM0xmVGVqV1ZpcWlhRmpWaU9vQ0R5M00va24rSzRIdU9FT0Y4ZHJzZTJkMG03SXkyVVhWNTBjMkV5VStoVklZRTRYS25XaWRDRnM4WHh0WVE9PTwvRFA+PERRPkV6bTNSVnhEbHdNRklValhOS1hXYzFuWWg1WE9SN3RxKytlc0JSQVZHK2ZnVTFpUmdXL0gxdUxibnBpQTlkTnNDZkRpdHRmQzNURWw0NVRVWHVhWUpRPT08L0RRPjxJbnZlcnNlUT5FNWlHS09qZUVmZ1hzSnhCZUp3Qkk3eHJIUExSSTZubXlJL1RadjhjQUdhRmZ1R0tKWlByNUpPTFQrSWJ0Y1JYeFFCME1vNnFIVTRGUzI1ZFZCVkdaQT09PC9JbnZlcnNlUT48RD5lNGtCLzI2cnVTYnpKeGNUNzMwNkYzZ1hQaHBzTDY3czExbVJBVFF1VEVqek9DaXhCWDJHWWxqckV4eDUrYUJKS292eUYvY3Z0bUJ1WHVIU1RwOG9HeUNZMkZTLzZJL0dZSGh4TitvdGZrZiswb0NwU2JGZW1IdGhtcU1Pcmo2WDVNbGJXYTNvWU45WlVjZDBGbHJjMTZXU1lZRXZ5QjhPV0tiZ0R5RDlDa0U9PC9EPjwvUlNBS2V5VmFsdWU+",
+    "logoText": "Вход в личный кабинет",
+    "logoDescription": "Авторизуйтесь, чтобы войти в свой кабинет",
+    "telegramSertificate": "",
+    "LDAPAuthentication": "True",
+    "TaskListAutoUpdate": "True",
+    "AsteriskServiceId": "19",
+    "AsteriskTypeId": "1005",
+    "WindowsAuthentication": {
+      "enabled": "false",
+      "application": "/",
+      "addresses": [ "http://localhost:5098" ],
+      "anonymurl": "login"
+    },
+    "FirebaseSettings": {
+      "FireBaseWebConfigFile": "intraservice-firebase-adminsdk-hjjm4-165872c703.json",
+      "ServerKey": "AAAAeVtrpZE:APA91bF94nKdNP5CYK8yTpIbozWlA6PEAxrc3MQYyN_6EeYwKaFYjF896hPXOxOl8Kk7U4CdVmuHebheYMQNkzZgYjxu7iIP5ZWNxU3GyAZXHNFo2MtXOER6WFJ7qDsndkoWk7uHbOBe",
+      "ApiKey": "AIzaSyAhxKbeMNPQqQc4Z3c6b157NjI6EMJqjxs",
+      "AuthDomain": "intraservice.firebaseapp.com",
+      "ProjectId": "intraservice",
+      "StorageBucket": "intraservice.appspot.com",
+      "MessagingSenderId": "521224824209",
+      "AppId": "1:521224824209:web:1e0fff03469245201b6630"
+    },    
+    "ImapOAuth": {
+      "Yandex": {
+        "RedirectUri": "",
+        "ClientId": "",
+        "ClientSecret": ""
+      },
+      "Google": {
+        "RedirectUri": "",
+        "ClientId": "",
+        "ClientSecret": ""
+      },
+      "MailRu": {
+        "RedirectUri": "",
+        "ClientId": "",
+        "ClientSecret": ""
+      },
+      "Microsoft365": {
+        "RedirectUri": "",
+        "ClientId": "",
+        "ClientSecret": ""
+      }
+    },
+    "SmtpOAuth": {
+      "Yandex": {
+        "RedirectUri": "",
+        "ClientId": "",
+        "ClientSecret": ""
+      },
+      "Google": {
+        "RedirectUri": "",
+        "ClientId": "",
+        "ClientSecret": ""
+      },
+      "MailRu": {
+        "RedirectUri": "",
+        "ClientId": "",
+        "ClientSecret": ""
+      },
+      "Microsoft365": {
+        "RedirectUri": "",
+        "ClientId": "",
+        "ClientSecret": ""
+      }
+    }
+  },
+  "FormsCookieName": ".IS5",
+  "nhaml": {
+    "autoRecompile": "true",
+    "assemblies": [
+      "IntraService.Zabbix",
+      "IntraService.Domain",
+      "Report.Designer",
+      "IntraService.Security",
+      "IntraService.Mvc",
+      "IntraService.Common",
+      "IntraService.Web.Infrastructure",
+      "IntraService.Helpers",
+      "System.Data",
+      "System.Data.Linq",
+      "System.Xml",
+      "Microsoft.AspNetCore.Http.Abstractions",
+      "Microsoft.EntityFrameworkCore"
+    ],
+    "namespaces": [
+      "IntraService.Domain.Enums",
+      "IntraService.Domain",
+      "IntraService.Domain.Models",
+      "IntraService.Domain.ViewModels",
+      "IntraService.Domain.Security",
+      "IntraService.Mvc.ViewHelpers",
+      "IntraService.Security",
+      "IntraService.Common",
+      "IntraService.Helpers",
+      "IntraService.Common.Helpers",
+      "IntraService.Common.Filter",
+      "IntraService.Web.Infrastructure",
+      "IntraService.Web.Toolkit",
+      "IntraService.Common.Table",
+      "IntraService.Mvc.Controllers",
+      "IntraService.Domain.Exceptions",
+      "IntraService.Domain.Models.FunctonalRoles",
+      "IntraService.Domain.Notifications",
+      "IntraService.Domain.TaskGroupReport",
+      "System.Collections.Generic",
+      "System.Collections.Specialized",
+      "System.Data",
+      "System.Linq",
+      "System.Web",
+      "System.Net",
+      "IntraService"
+    ]
+  }
 }
