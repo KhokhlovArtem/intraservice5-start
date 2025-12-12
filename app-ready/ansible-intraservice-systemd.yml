@@ -1,0 +1,54 @@
+---
+# Playbook для установки и запуска сервисов Intraservice
+- name: Deploy and manage Intraservice services
+  hosts: all
+  become: true
+
+  vars:
+    service_dir: /etc/systemd/system/
+    git_service_dir: ./services/  # Директория с файлами сервисов (ваш каталог Git)
+
+  tasks:
+    # Копируем файлы сервисов в систему
+    - name: Copy intraservice.service
+      copy:
+        src: "{{ git_service_dir }}intraservice.service"
+        dest: "{{ service_dir }}intraservice.service"
+        mode: '0644'
+
+    - name: Copy intraservice-agent.service
+      copy:
+        src: "{{ git_service_dir }}intraservice-agent.service"
+        dest: "{{ service_dir }}intraservice-agent.service"
+        mode: '0644'
+
+    # Реинициализируем SystemD после копирования файлов
+    - name: Reload systemd daemon
+      systemd:
+        daemon_reload: yes
+
+    # Включаем и запускаем сервисы
+    - name: Enable and start intraservice.service
+      systemd:
+        name: intraservice.service
+        enabled: yes
+        state: started
+
+    - name: Enable and start intraservice-agent.service
+      systemd:
+        name: intraservice-agent.service
+        enabled: yes
+        state: started
+
+    # Проверяем статус сервисов
+    - name: Check status of intraservice.service
+      command: systemctl status intraservice.service
+      register: status_output
+      changed_when: false
+      failed_when: "'Active: active (running)' not in status_output.stdout"
+
+    - name: Check status of intraservice-agent.service
+      command: systemctl status intraservice-agent.service
+      register: status_output
+      changed_when: false
+      failed_when: "'Active: active (running)' not in status_output.stdout"
