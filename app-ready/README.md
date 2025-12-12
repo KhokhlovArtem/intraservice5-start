@@ -1,3 +1,22 @@
+## requirements
+```on client
+sudo adduser deploy
+sudo usermod -aG sudo deploy
+```
+
+```sudo visudo
+deploy ALL=(ALL) NOPASSWD:ALL
+```
+
+```
+cat ~/.ssh/id_rsa.pub
+ssh deploy@server_ip_address 'mkdir -p ~/.ssh && chmod 700 ~/.ssh && cat >> ~/.ssh/authorized_keys'
+```
+
+
+```ansible
+sudo apt install ansible-core
+```
 ### Инструкция по использованию:
 
 1. Предполагается наличие развернутого PostgresSQL
