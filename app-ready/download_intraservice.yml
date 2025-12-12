@@ -1,0 +1,72 @@
+---
+# Playbook для установки Intraservice
+- hosts: all
+  become: true
+  gather_facts: false
+
+  vars:
+    download_dir: "/tmp/intraservice-install/"
+
+  tasks:
+    # Установка необходимого инструмента для распаковки ZIP-архивов
+    - name: Install unzip utility
+      apt:
+        name: unzip
+        update_cache: yes
+        state: present
+
+    # Создание временной директории для распаковки
+    - name: Create temporary directory for extraction
+      file:
+        path: "{{ download_dir }}"
+        state: directory
+        mode: '0755'
+
+    # Загрузка основного дистрибутива
+    - name: Download main distribution archive
+      get_url:
+        url: "https://storage.yandexcloud.net/intraservice-distr/5.4.7.site.zip"
+        dest: "{{ download_dir }}site.zip"
+        validate_certs: no
+
+    # Сообщение о результате скачивания основного дистрибутива
+    - name: Check if the main distro was downloaded successfully
+      debug:
+        msg: "Main distribution downloaded successfully!"
+
+    # Распаковка основного дистрибутива
+    - name: Unpack main distribution archive
+      unarchive:
+        src: "{{ download_dir }}site.zip"
+        dest: "{{ download_dir }}"
+        remote_src: yes
+      register: result_unpack_main
+
+    # Удаляем zip-файл после распаковки
+    - name: Remove main distribution archive after unpacking
+      file:
+        path: "{{ download_dir }}site.zip"
+        state: absent
+      when: result_unpack_main.changed
+
+    # Загрузка агента
+    - name: Download agent distribution archive
+      get_url:
+        url: "https://storage.yandexcloud.net/intraservice-distr/5.4.7-linux-agent.zip"
+        dest: "{{ download_dir }}site-agent.zip"
+        validate_certs: no
+
+    # Распаковка агента
+    - name: Unpack agent distribution archive
+      unarchive:
+        src: "{{ download_dir }}site-agent.zip"
+        dest: "{{ download_dir }}"
+        remote_src: yes
+      register: result_unpack_agent
+
+    # Удаляем zip-файл после распаковки
+    - name: Remove agent distribution archive after unpacking
+      file:
+        path: "{{ download_dir }}site-agent.zip"
+        state: absent
+      when: result_unpack_agent.changed
