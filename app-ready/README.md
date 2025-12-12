@@ -15,7 +15,10 @@ ssh deploy@server_ip_address 'mkdir -p ~/.ssh && chmod 700 ~/.ssh && cat >> ~/.s
 
 
 ```ansible
-sudo apt install ansible-core
+python3 -m venv ansible-venv
+source ansible-venv/bin/activate
+pip install --upgrade pip setuptools wheel
+pip install ansible
 ```
 ### Инструкция по использованию:
 
@@ -28,16 +31,9 @@ cp .env.yml.example .env.yml
 ```bash
 cp your_inventory_file.yml.example your_inventory_file.yml
 ```
-4. (Опция) Скопируйте архивы `intraservice.zip` и `intraservice.agent.zip` в `/tmp/intraservice-install/` на целевом сервере
-```intraservice.zip
-wget -q https://storage.yandexcloud.net/intraservice-distr/5.4.7.site.zip -O site.zip && \
-    unzip -q site.zip && \
-    rm site.zip
+4. Скопируйте архивы `intraservice.zip` и `intraservice.agent.zip` в `/tmp/intraservice-install/` на целевом сервере
 ```
-```intraservice.agent.zip
-wget -q https://storage.yandexcloud.net/intraservice-distr/5.4.7-linux-agent.zip -O site-agent.zip && \
-    unzip -q site-agent.zip && \
-    rm site-agent.zip
+ansible-playbook -i your_inventory_file.yml ansible-download-intraservice.yml
 ```
 5. Pre-install asp.net
 
