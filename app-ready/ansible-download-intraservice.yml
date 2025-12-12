@@ -1,26 +1,19 @@
 ---
-# Playbook для установки Intraservice
+# Playbook для скачивания архивов Intraservice
 - hosts: all
   become: true
   gather_facts: false
 
   vars:
-    download_dir: "/tmp/intraservice-install/"
+    download_dir: "/tmp/intraservice-install/"           # Временная директория для сохранения архивов
     main_archive_url: "https://storage.yandexcloud.net/intraservice-distr/5.4.7.site.zip"
     agent_archive_url: "https://storage.yandexcloud.net/intraservice-distr/5.4.7-linux-agent.zip"
     main_archive_name: "site.zip"
     agent_archive_name: "site-agent.zip"
 
   tasks:
-    # Установка необходимого инструмента для распаковки ZIP-архивов
-    - name: Install unzip utility
-      apt:
-        name: unzip
-        update_cache: yes
-        state: present
-
-    # Создание временной директории для распаковки
-    - name: Create temporary directory for extraction
+    # Создание временной директории для скачивания
+    - name: Create temporary directory for downloads
       file:
         path: "{{ download_dir }}"
         state: directory
@@ -33,44 +26,9 @@
         dest: "{{ download_dir }}{{ main_archive_name }}"
         validate_certs: no
 
-    # Сообщение о результате скачивания основного дистрибутива
-    - name: Check if the main distro was downloaded successfully
-      debug:
-        msg: "Main distribution downloaded successfully!"
-
-    # Распаковка основного дистрибутива
-    - name: Unpack main distribution archive
-      unarchive:
-        src: "{{ download_dir }}{{ main_archive_name }}"
-        dest: "{{ download_dir }}"
-        remote_src: yes
-      register: result_unpack_main
-
-    # Удаляем zip-файл после распаковки
-    - name: Remove main distribution archive after unpacking
-      file:
-        path: "{{ download_dir }}{{ main_archive_name }}"
-        state: absent
-      when: result_unpack_main.changed
-
     # Загрузка агента
     - name: Download agent distribution archive
       get_url:
         url: "{{ agent_archive_url }}"
         dest: "{{ download_dir }}{{ agent_archive_name }}"
         validate_certs: no
-
-    # Распаковка агента
-    - name: Unpack agent distribution archive
-      unarchive:
-        src: "{{ download_dir }}{{ agent_archive_name }}"
-        dest: "{{ download_dir }}"
-        remote_src: yes
-      register: result_unpack_agent
-
-    # Удаляем zip-файл после распаковки
-    - name: Remove agent distribution archive after unpacking
-      file:
-        path: "{{ download_dir }}{{ agent_archive_name }}"
-        state: absent
-      when: result_unpack_agent.changed
