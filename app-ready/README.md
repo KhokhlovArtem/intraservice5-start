@@ -10,6 +10,16 @@ cp .env.yml.example .env.yml
 cp your_inventory_file.yml.example your_inventory_file.yml
 ```
 4. (Опция) Скопируйте архивы `intraservice.zip` и `intraservice.agent.zip` в `/tmp/intraservice-install/` на целевом сервере
+```intraservice.zip
+wget -q https://storage.yandexcloud.net/intraservice-distr/5.4.7.site.zip -O site.zip && \
+    unzip -q site.zip && \
+    rm site.zip
+```
+```intraservice.agent.zip
+wget -q https://storage.yandexcloud.net/intraservice-distr/5.4.7-linux-agent.zip -O site-agent.zip && \
+    unzip -q site-agent.zip && \
+    rm site-agent.zip
+```
 5. Pre-install asp.net
 
 ```bash
