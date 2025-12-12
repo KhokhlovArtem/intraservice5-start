@@ -1,0 +1,21 @@
+# команда - sudo nano /etc/systemd/system/intraservice-agent.service
+# sudo systemctl enable intraservice-agent.service
+# sudo systemctl start intraservice-agent.service
+# sudo systemctl status intraservice-agent.service
+[Unit]
+Description=IntraService Agent
+
+[Service]
+WorkingDirectory=/var/www/intraservice.agent
+ExecStart=/usr/bin/dotnet /var/www/intraservice.agent/IntraService.Agent.Service.dll
+Restart=always
+# Restart service after 10 seconds if the dotnet service crashes:
+RestartSec=10
+KillSignal=SIGINT
+SyslogIdentifier=IntraService-Agent
+User=root
+Environment=ASPNETCORE_ENVIRONMENT=Production
+Environment=DOTNET_PRINT_TELEMETRY_MESSAGE=false
+
+[Install]
+WantedBy=multi-user.target
