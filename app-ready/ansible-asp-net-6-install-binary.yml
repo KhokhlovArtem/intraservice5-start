@@ -1,64 +1,74 @@
 ---
+# Устанавливаем .NET 6 на Ubuntu 24.04 с использованием Ansible
 - name: Install .NET 6 on Ubuntu 24.04
   hosts: all
-  become: yes
+  become: yes  # Используем эскалацию прав для администраторских действий
 
   tasks:
+    # Задача 1: Устанавливаем предварительные зависимости
     - name: Install prerequisites
       apt:
-        name: "{{ item }}"
+        name: "{{ item }}"  # Перечисляем нужные пакеты
         state: present
       loop:
-        - wget
-        - tar
-        - gzip
+        - wget  # Необходим для скачивания бинарников
+        - tar   # Нужен для распаковки архивов
+        - gzip  # Требуется для обработки сжатых архивов
 
+    # Задача 2: Скачиваем бинарники .NET 6
     - name: Download .NET 6 binaries
       ansible.builtin.get_url:
         url: https://builds.dotnet.microsoft.com/dotnet/Sdk/6.0.428/dotnet-sdk-6.0.428-linux-x64.tar.gz
-        dest: /tmp/dotnet-sdk.tar.gz
+        dest: /tmp/dotnet-sdk.tar.gz  # Сохраняем в каталог /tmp
         checksum: sha512:04395f991ab50e4755ce1ae53e23592a7420b71b82160883bae3194dd1dfd5dcaed78743e4e0b4dd51ea43c49ec84b5643630707b3854f1471265dc98490d2f9
+        # Используется контрольная сумма SHA512 для верификации целостности файла
 
+    # Задача 3: Создаем директорию для размещения .NET
     - name: Create dotnet directory
       file:
         path: /usr/share/dotnet
         state: directory
-        mode: '0755'
+        mode: '0755'  # Права доступа на чтение и исполнение для всех пользователей
 
+    # Задача 4: Извлекаем архив .NET SDK
     - name: Extract .NET SDK
       ansible.builtin.unarchive:
         src: /tmp/dotnet-sdk.tar.gz
         dest: /usr/share/dotnet
         remote_src: yes
-        extra_opts: "--strip-components=1"
+        extra_opts: "--strip-components=1"  # Убираем верхний уровень каталога из архива
 
+    # Задача 5: Создаем символьную ссылку на исполняемый файл dotnet
     - name: Create symlink to binary
       file:
         src: /usr/share/dotnet/dotnet
         dest: /usr/bin/dotnet
         state: link
-        force: yes
+        force: yes  # Принудительно создаём новую ссылку, если старая существует
 
+    # Задача 6: Добавляем переменную PATH для .NET
     - name: Add dotnet to PATH
       blockinfile:
         path: /etc/profile.d/dotnet.sh
-        create: yes
+        create: yes  # Создаем файл, если он не существует
         block: |
           export DOTNET_ROOT=/usr/share/dotnet
-          export PATH=$PATH:/usr/share/dotnet
+          export PATH=$PATH:/usr/share/dotnet  # Добавляем директорию в PATH
 
+    # Задача 7: Применяем новые пути в текущей сессии
     - name: Make dotnet available in current session
       ansible.builtin.shell: |
-        . /etc/profile.d/dotnet.sh
+        . /etc/profile.d/dotnet.sh  # Читаем созданный скрипт
       register: dotnet_path
-      changed_when: false
+      changed_when: false  # Не считаем изменение состояния, если скрипт прочитан
 
+    # Задача 8: Проверяем успешность установки
     - name: Verify installation
       ansible.builtin.command: dotnet --list-runtimes
       register: dotnet_check
-      changed_when: false
+      changed_when: false  # Не меняем состояние, если проверка выполнена успешно
 
+    # Задача 9: Показываем установленные runtime-компоненты
     - name: Show installed runtimes
       ansible.builtin.debug:
-        var: dotnet_check.stdout_lines
-
+        var: dotnet_check.stdout_lines  # Выводим список установленных runtime
