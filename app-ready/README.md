@@ -51,7 +51,13 @@ ansible-playbook -i your_inventory_file.yml ansible-download-intraservice.yml --
    ansible-playbook -i your_inventory_file.yml ansible-intraservice-site-setup.yml --extra-vars "@.env.yml"
 ```
 
-8. Clean temp files 
+7. install services
+
+```bash
+   ansible-playbook -i your_inventory_file.yml ansible-intraservice-systemd.yml --extra-vars "@.env.yml"
+```
+
+9. Clean temp files 
 
 ```bash
    ansible-playbook -i your_inventory_file.yml ansible-intraservice-clean.yml --extra-vars "@.env.yml"
@@ -64,6 +70,7 @@ ansible-playbook -i your_inventory_file.yml ansible-download-intraservice.yml --
    ansible-playbook -i your_inventory_file.yml ansible-intraservice-nginx-deploy.yml
    ansible-playbook -i your_inventory_file.yml ansible-asp-net-6-install-binary.yml   
    ansible-playbook -i your_inventory_file.yml ansible-intraservice-site-setup.yml --extra-vars "@.env.yml"
+   ansible-playbook -i your_inventory_file.yml ansible-intraservice-systemd.yml --extra-vars "@.env.yml"
    ansible-playbook -i your_inventory_file.yml ansible-intraservice-clean.yml --extra-vars "@.env.yml"
    
 ```
