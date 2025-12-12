@@ -1,25 +1,30 @@
 ---
-- name: Prepare postgresql clietn and Nginx server for Intraservice 
+# Подготовить клиент PostgreSQL и веб-сервер Nginx для Intraservice
+- name: Prepare postgresql client and Nginx server for Intraservice
   hosts: all
-  become: yes
+  become: yes  # Используем повышенные права администратора
 
   tasks:
+    # Обновляем индекс пакетов APT перед установкой программного обеспечения
     - name: Update apt package index
       apt:
-        update_cache: yes
+        update_cache: yes  # Обновляем кэш индексов пакетов
 
+    # Устанавливаем веб-сервер Nginx
     - name: Install Nginx
       apt:
-        name: nginx
-        state: present
+        name: nginx  # Имя пакета
+        state: present  # Устанавливаем пакет, если он не установлен
 
+    # Включаем и запускаем сервис Nginx
     - name: Enable and start Nginx
       systemd:
-        name: nginx
-        enabled: yes
-        state: started
+        name: nginx  # Название службы
+        enabled: yes  # Включаем автозапуск при старте системы
+        state: started  # Запускаем службу немедленно
 
+    # Устанавливаем клиента PostgreSQL для тестирования соединений
     - name: Install PostgreSQL client (for connection testing)
       apt:
-        name: postgresql-client
-        state: present
+        name: postgresql-client  # Клиентская библиотека PostgreSQL
+        state: present  # Устанавливаем пакет, если он не установлен
