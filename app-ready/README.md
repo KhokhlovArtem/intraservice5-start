@@ -33,7 +33,7 @@ cp your_inventory_file.yml.example your_inventory_file.yml
 ```
 4. Скопируйте архивы `intraservice.zip` и `intraservice.agent.zip` в `/tmp/intraservice-install/` на целевом сервере
 ```
-ansible-playbook -i your_inventory_file.yml ansible-download-intraservice.yml
+ansible-playbook -i your_inventory_file.yml ansible-download-intraservice.yml --extra-vars "@.env.yml"
 ```
 5. Pre-install asp.net
 
@@ -50,12 +50,21 @@ ansible-playbook -i your_inventory_file.yml ansible-download-intraservice.yml
 ```bash
    ansible-playbook -i your_inventory_file.yml ansible-intraservice-site-setup.yml --extra-vars "@.env.yml"
 ```
-### Playbook order
+
+8. Clean temp files 
 
 ```bash
+   ansible-playbook -i your_inventory_file.yml ansible-intraservice-clean.yml --extra-vars "@.env.yml"
+```
+### Playbook order
+
+```Playbook order
+
+   ansible-playbook -i your_inventory_file.yml ansible-download-intraservice.yml --extra-vars "@.env.yml"
    ansible-playbook -i your_inventory_file.yml ansible-intraservice-nginx-deploy.yml
    ansible-playbook -i your_inventory_file.yml ansible-asp-net-6-install-binary.yml   
    ansible-playbook -i your_inventory_file.yml ansible-intraservice-site-setup.yml --extra-vars "@.env.yml"
+   ansible-playbook -i your_inventory_file.yml ansible-intraservice-clean.yml --extra-vars "@.env.yml"
    
 ```
 
