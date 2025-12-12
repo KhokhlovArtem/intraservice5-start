@@ -1,95 +1,52 @@
 ---
-- name: Download and setup instaservice files
+# Подготовка и настройка Intraservice
+- name: Prepare and configure Intraservice
   hosts: all
   become: yes
 
   vars:
-    intraservice_dir: /var/www/intraservice
-    agent_dir: /var/www/intraservice.agent
-    download_dir: /tmp/intraservice-setup
+    intraservice_dir: /var/www/intraservice                   # Директория приложения
+    agent_dir: /var/www/intraservice.agent                    # Директория агента
+    download_dir: "/tmp/intraservice-install"                # Распакованная директория
+    main_archive_name: "site.zip"                             # Имя основного архива
+    agent_archive_name: "site-agent.zip"                      # Имя архива агента
+    intraservice_url: "http://example.intraiservice.local"  # URL сайта
+    agent_url: "http://example.agent.local"                  # URL агента
+
     db_host: "{{ db_host_var }}"
-    db_port: "{{ db_port_var }}" 
+    db_port: "{{ db_port_var }}"
     db_name: "{{ db_name_var }}"
     db_user: "{{ db_user_var }}"
     db_pass: "{{ db_pass_var | quote }}"
-    intraservice_url: "{{ intraservice_url_var | default('') }}"
-    agent_url: "{{ agent_url_var | default('') }}"
+
+
 
   tasks:
-    - name: Create download directory
-      file:
-        path: "{{ download_dir }}"
-        state: directory
-        mode: '0755'
-
-    - name: Check if intraservice.zip exists locally
-      stat:
-        path: "{{ download_dir }}/intraservice.zip"
-      register: intraservice_local
-
-    - name: Download Intraservice (if URL provided and not exists locally)
-      get_url:
-        url: "{{ intraservice_url }}"
-        dest: "{{ download_dir }}/intraservice.zip"
-        mode: '0644'
-      when: intraservice_url != '' and not intraservice_local.stat.exists
-
-    - name: Check if intraservice.agent.zip exists locally
-      stat:
-        path: "{{ download_dir }}/intraservice.agent.zip"
-      register: agent_local
-
-    - name: Download Agent (if URL provided and not exists locally)
-      get_url:
-        url: "{{ agent_url }}"
-        dest: "{{ download_dir }}/intraservice.agent.zip"
-        mode: '0644'
-      when: agent_url != '' and not agent_local.stat.exists
-
-    - name: Verify at least one package is available
-      fail:
-        msg: "Neither intraservice.zip nor intraservice.agent.zip found locally and no download URLs provided"
-      when: >
-        not intraservice_local.stat.exists and
-        not agent_local.stat.exists and
-        intraservice_url == '' and
-        agent_url == ''
-
-    - name: Create application directories
-      file:
-        path: "{{ item }}"
-        state: directory
-        mode: '0755'
-      with_items:
-        - "{{ intraservice_dir }}"
-        - "{{ agent_dir }}"
-      when: >
-        (intraservice_local.stat.exists or intraservice_url != '') or
-        (agent_local.stat.exists or agent_url != '')
-
-    - name: Install unzip
+    # Установка необходимого инструмента для распаковки ZIP-архивов
+    - name: Install unzip utility
       apt:
         name: unzip
+        update_cache: yes
         state: present
-      when: >
-        (intraservice_local.stat.exists or intraservice_url != '') or
-        (agent_local.stat.exists or agent_url != '')
 
-    - name: Copy and extract Intraservice (if available)
+    # Распаковка основного дистрибутива
+    - name: Unpack main distribution archive
       unarchive:
-        src: "{{ download_dir }}/intraservice.zip"
+        src: "{{ download_dir }}/{{ main_archive_name }}"
         dest: "{{ intraservice_dir }}"
         remote_src: yes
-      when: intraservice_local.stat.exists or intraservice_url != ''
+      register: result_unpack_main
 
-    - name: Copy and extract Agent (if available)
+    # Распаковка агента
+    - name: Unpack agent distribution archive
       unarchive:
-        src: "{{ download_dir }}/intraservice.agent.zip"
+        src: "{{ download_dir }}/{{ agent_archive_name }}"
         dest: "{{ agent_dir }}"
         remote_src: yes
-      when: agent_local.stat.exists or agent_url != ''
+      register: result_unpack_agent
 
-    - name: Set permissions for Intraservice directories (if installed)
+    # Настраиваем права доступа к нужным директориям
+    - name: Adjust folder permissions
       file:
         path: "{{ item }}"
         mode: '0777'
@@ -98,16 +55,14 @@
         - "{{ intraservice_dir }}/wwwroot/img"
         - "{{ intraservice_dir }}/wwwroot/tempfiles"
         - "{{ intraservice_dir }}/temp"
-      when: intraservice_local.stat.exists or intraservice_url != ''
 
-    - name: Configure appsettings.json for Intraservice (if installed)
+    # Генерируем конфигурационные файлы
+    - name: Generate appsettings.json for Intraservice
       template:
         src: appsettings.json.j2
         dest: "{{ intraservice_dir }}/appsettings.json"
-      when: intraservice_local.stat.exists or intraservice_url != ''
 
-    - name: Configure appsettings.json for Agent (if installed)
+    - name: Generate appsettings.json for Agent
       template:
         src: appsettings.json.j2
         dest: "{{ agent_dir }}/appsettings.json"
-      when: agent_local.stat.exists or agent_url != ''
