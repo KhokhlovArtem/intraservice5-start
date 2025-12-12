@@ -19,50 +19,187 @@
     db_user: "{{ db_user_var }}"
     db_pass: "{{ db_pass_var | quote }}"
 
-
-
   tasks:
-    # Установка необходимого инструмента для распаковки ZIP-архивов
-    - name: Install unzip utility
+    # Установка необходимых утилит
+    - name: Install required utilities
       apt:
-        name: unzip
+        name:
+          - unzip
+          - rsync
         update_cache: yes
         state: present
 
-    # Распаковка основного дистрибутива
-    - name: Unpack main distribution archive
-      unarchive:
-        src: "{{ download_dir }}/{{ main_archive_name }}"
-        dest: "{{ intraservice_dir }}"
-        remote_src: yes
-      register: result_unpack_main
-
-    # Распаковка агента
-    - name: Unpack agent distribution archive
-      unarchive:
-        src: "{{ download_dir }}/{{ agent_archive_name }}"
-        dest: "{{ agent_dir }}"
-        remote_src: yes
-      register: result_unpack_agent
-
-    # Настраиваем права доступа к нужным директориям
-    - name: Adjust folder permissions
+    # Создание целевых директорий
+    - name: Create destination directories
       file:
         path: "{{ item }}"
-        mode: '0777'
-        recurse: yes
-      with_items:
-        - "{{ intraservice_dir }}/wwwroot/img"
-        - "{{ intraservice_dir }}/wwwroot/tempfiles"
-        - "{{ intraservice_dir }}/temp"
+        state: directory
+        mode: '0755'
+      loop:
+        - "{{ intraservice_dir }}"
+        - "{{ agent_dir }}"
+
+    # --- Распаковка основного дистрибутива с удалением первого уровня ---
+    - name: Create temp directory for main extraction
+      file:
+        path: "/tmp/intraservice-main-extract/"
+        state: directory
+        mode: '0755'
+
+    - name: Extract main archive to temporary directory
+      unarchive:
+        src: "{{ download_dir }}/{{ main_archive_name }}"
+        dest: "/tmp/intraservice-main-extract/"
+        remote_src: yes
+      register: result_extract_main
+      changed_when: result_extract_main.changed
+
+    - name: Move main archive content (strip first directory level)
+      block:
+        - name: Find first directory in temp extract
+          shell: |
+            find "/tmp/intraservice-main-extract/" -maxdepth 1 -mindepth 1 -type d | head -1
+          register: main_first_dir
+          changed_when: false
+
+        - name: Move files from first directory
+          shell: |
+            # Если найдена директория, копируем её содержимое
+            if [ -n "{{ main_first_dir.stdout }}" ]; then
+              rsync -a "{{ main_first_dir.stdout }}/" "{{ intraservice_dir }}/"
+            else
+              # Если директории нет, копируем файлы напрямую
+              rsync -a "/tmp/intraservice-main-extract/"/* "{{ intraservice_dir }}/" 2>/dev/null || true
+            fi
+          args:
+            executable: /bin/bash
+          when: result_extract_main.changed
+
+        - name: Clean up main temp directory
+          file:
+            path: "/tmp/intraservice-main-extract/"
+            state: absent
+          when: result_extract_main.changed
+
+    # --- Распаковка агента с удалением первого уровня ---
+    - name: Create temp directory for agent extraction
+      file:
+        path: "/tmp/intraservice-agent-extract/"
+        state: directory
+        mode: '0755'
+
+    - name: Extract agent archive to temporary directory
+      unarchive:
+        src: "{{ download_dir }}/{{ agent_archive_name }}"
+        dest: "/tmp/intraservice-agent-extract/"
+        remote_src: yes
+      register: result_extract_agent
+      changed_when: result_extract_agent.changed
+
+    - name: Move agent archive content (strip first directory level)
+      block:
+        - name: Find first directory for agent
+          shell: |
+            find "/tmp/intraservice-agent-extract/" -maxdepth 1 -mindepth 1 -type d | head -1
+          register: agent_first_dir
+          changed_when: false
+
+        - name: Move agent files from first directory
+          shell: |
+            if [ -n "{{ agent_first_dir.stdout }}" ]; then
+              rsync -a "{{ agent_first_dir.stdout }}/" "{{ agent_dir }}/"
+            else
+              rsync -a "/tmp/intraservice-agent-extract/"/* "{{ agent_dir }}/" 2>/dev/null || true
+            fi
+          args:
+            executable: /bin/bash
+          when: result_extract_agent.changed
+
+        - name: Clean up agent temp directory
+          file:
+            path: "/tmp/intraservice-agent-extract/"
+            state: absent
+          when: result_extract_agent.changed
+
+    # Настраиваем права доступа к нужным директориям - БЕЗ УСЛОВИЙ (простая проверка существования)
+    - name: Check if Intraservice wwwroot directory exists
+      stat:
+        path: "{{ intraservice_dir }}/wwwroot"
+      register: intraservice_wwwroot_exists
+      changed_when: false
+
+    - name: Adjust folder permissions for Intraservice
+      block:
+        - name: Set permissions for Intraservice directories
+          file:
+            path: "{{ item }}"
+            mode: '0777'
+            recurse: yes
+          loop:
+            - "{{ intraservice_dir }}/wwwroot/img"
+            - "{{ intraservice_dir }}/wwwroot/tempfiles"
+            - "{{ intraservice_dir }}/temp"
+      when: intraservice_wwwroot_exists.stat.exists
+
+    - name: Check if Agent wwwroot directory exists
+      stat:
+        path: "{{ agent_dir }}/wwwroot"
+      register: agent_wwwroot_exists
+      changed_when: false
+
+    - name: Adjust folder permissions for Agent
+      block:
+        - name: Set permissions for Agent directories
+          file:
+            path: "{{ item }}"
+            mode: '0777'
+            recurse: yes
+          loop:
+            - "{{ agent_dir }}/wwwroot/img"
+            - "{{ agent_dir }}/wwwroot/tempfiles"
+            - "{{ agent_dir }}/temp"
+      when: agent_wwwroot_exists.stat.exists
+
+    # Удаление исходных архивов после успешной распаковки
+    - name: Remove archives after successful extraction
+      file:
+        path: "{{ download_dir }}/{{ item }}"
+        state: absent
+      loop:
+        - "{{ main_archive_name }}"
+        - "{{ agent_archive_name }}"
+      when: >
+        (result_extract_main is defined and result_extract_main.changed) or
+        (result_extract_agent is defined and result_extract_agent.changed)
 
     # Генерируем конфигурационные файлы
     - name: Generate appsettings.json for Intraservice
       template:
         src: appsettings.json.j2
         dest: "{{ intraservice_dir }}/appsettings.json"
+      register: appsettings_intraservice
 
     - name: Generate appsettings.json for Agent
       template:
         src: appsettings.json.j2
         dest: "{{ agent_dir }}/appsettings.json"
+      register: appsettings_agent
+
+    # Проверка результатов распаковки
+    - name: Verify main application extraction
+      stat:
+        path: "{{ intraservice_dir }}"
+      register: main_app_check
+
+    - name: Verify agent extraction
+      stat:
+        path: "{{ agent_dir }}"
+      register: agent_check
+
+    - name: Display extraction results
+      debug:
+        msg:
+          - "Main Intraservice extracted to: {{ intraservice_dir }}"
+          - "Agent extracted to: {{ agent_dir }}"
+          - "Main app exists: {{ main_app_check.stat.exists }}"
+          - "Agent exists: {{ agent_check.stat.exists }}"
