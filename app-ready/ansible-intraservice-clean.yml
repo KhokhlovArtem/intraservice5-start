@@ -1,0 +1,24 @@
+---
+# Удаление временных архивов
+- name: Cleanup temporary archives
+  hosts: all
+  become: true
+  gather_facts: false
+
+  vars:
+    download_dir: "/tmp/intraservice-install"                # Распакованная директория
+    main_archive_name: "site.zip"                             # Имя основного архива
+    agent_archive_name: "site-agent.zip"                      # Имя архива агента
+
+  tasks:
+    # Удаляем основной архив
+    - name: Remove main distribution archive
+      file:
+        path: "{{ download_dir }}/{{ main_archive_name }}"
+        state: absent
+
+    # Удаляем архив агента
+    - name: Remove agent distribution archive
+      file:
+        path: "{{ download_dir }}/{{ agent_archive_name }}"
+        state: absent
