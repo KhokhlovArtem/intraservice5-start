@@ -32,30 +32,3 @@
         *   **Метаданные:** Ключ `user-data` для запуска контейнеров через Docker Compose или систему инициализации (например, cloud-init).
     *   **Масштабирование:** На старте — фиксированное количество 2 ВМ. Далее можно настроить автомасштабирование на основе CPU (например, масштабировать от 2 до 6 инстансов при нагрузке >70%).
     *   **Правило распределения трафика:** Создается целевая группа для этой instance group, которую слушает Load Balancer.
-
-#### **3. Контейнеризация (на каждой ВМ из группы)**
-На каждой виртуальной машине будут запущены два контейнера через Docker Compose:
-
-```yaml
-version: '3.8'
-services:
-  nginx:
-    image: your-registry/nginx:latest # Образ с вашей конфигурацией
-    ports:
-      - "80:80" # ALB будет обращаться на 80 порт ВМ
-    depends_on:
-      - dotnet-app
-    volumes:
-      - ./nginx.conf:/etc/nginx/nginx.conf:ro
-    restart: unless-stopped
-
-  dotnet-app:
-    image: your-registry/dotnet-app:latest
-    expose:
-      - "5000" # Expose port internally for nginx
-    environment:
-      - ASPNETCORE_URLS=http://+:5000
-      - ConnectionStrings__Postgres=... # Строка подключения к Managed PG
-    restart: unless-stopped
-```
-*
